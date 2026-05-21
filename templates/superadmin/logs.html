@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Логи сервиса{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-100 via-violet-50/30 to-slate-100 flex">
+    {% include 'partials/owner_sidebar.html' %}
+
+    <main class="flex-1 p-6 md:p-8 overflow-y-auto">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h1 class="text-2xl font-bold text-gray-800 mb-6">Логи сервиса (в реальном времени)</h1>
+
+            <div class="mb-4">
+                <button id="toggle-stream-btn" onclick="toggleStream()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Подключиться к потоку
+                </button>
+            </div>
+
+            <div class="bg-gray-800 text-green-400 p-4 rounded-md font-mono text-sm overflow-y-auto max-h-[60vh]" id="logs-output">
+                <!-- Logs will appear here -->
+                <p class="text-gray-500">Логи появятся здесь после подключения к потоку.</p>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let eventSource = null;
+    const logsOutput = document.getElementById('logs-output');
+    const toggleBtn = document.getElementById('toggle-stream-btn');
+
+    function logToConsoleAndScreen(message) {
+        console.log(message); // Log to browser console
+        const logLine = document.createElement('div');
+        logLine.textContent = message;
+        logsOutput.appendChild(logLine);
+        logsOutput.scrollTop = logsOutput.scrollHeight; // Auto-scroll to bottom
+    }
+
+    function connectToStream() {
+        if (eventSource) {
+            eventSource.close();
+        }
+        // Use the SSE endpoint
+        eventSource = new EventSource('/api/logs/stream'); // Ensure this matches your backend route
+
+        eventSource.onmessage = function(event) {
+            try {
+                const logEntry = JSON.parse(event.data);
+                const formattedLog = `[${logEntry.time}] [${logEntry.level}] ${logEntry.message} (${logEntry.source})`;
+                logToConsoleAndScreen(formattedLog);
+            } catch (e) {
+                logToConsoleAndScreen(`[PARSE_ERROR] Raw data: ${event.data}`);
+            }
+        };
+
+        eventSource.onerror = function(err) {
+            console.error("EventSource failed:", err);
+            logToConsoleAndScreen(`[CONNECTION_ERROR] ${err}`);
+            eventSource.close();
+            eventSource = null;
+            toggleBtn.textContent = 'Подключиться к потоку';
+        };
+
+        toggleBtn.textContent = 'Отключиться';
+    }
+
+    function disconnectFromStream() {
+        if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+        }
+        toggleBtn.textContent = 'Подключиться к потоку';
+    }
+
+    function toggleStream() {
+        if (eventSource) {
+            disconnectFromStream();
+        } else {
+            connectToStream();
+        }
+    }
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', function() {
+        if (eventSource) {
+            eventSource.close();
+        }
+    });
+</script>
+{% endblock %}

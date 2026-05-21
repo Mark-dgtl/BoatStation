@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Лодочная станция{% endblock %}</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Flowbite -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <!-- Header -->
+<!--    <header class="bg-white shadow">-->
+<!--        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">-->
+<!--            <div class="flex justify-between h-16">-->
+<!--                <div class="flex items-center">-->
+<!--                    <a href="/" class="text-xl font-bold text-blue-600">Лодочная станция</a>-->
+<!--                </div>-->
+<!--                <div class="flex items-center">-->
+<!--                    {% if user %}-->
+<!--                        <span class="text-gray-700 mr-4">Привет, {{ user.get('surname', user.get('login', 'Пользователь')) }}!</span>-->
+<!--                        <a href="/api/auth/logout" class="text-red-600 hover:text-red-800">Выйти</a>-->
+<!--                    {% else %}-->
+<!--                        <a href="/api/auth/login_form" class="text-blue-600 hover:text-blue-800 mr-4">Войти</a>-->
+<!--                        <a href="/api/auth/register_form" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition duration-200">Регистрация</a>-->
+<!--                    {% endif %}-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </header>-->
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+<!--    <footer class="bg-white mt-auto py-4 shadow-inner">-->
+<!--        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">-->
+<!--            &copy; 2024 Лодочная станция. КУРСОВАЯ РАБОТА.-->
+<!--        </div>-->
+<!--    </footer>-->
+
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', path='/js/app.js') }}"></script>
+    {% block extra_js %}
+    {% endblock %}
+</body>
+</html>

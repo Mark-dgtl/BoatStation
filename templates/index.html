@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<link rel="icon" href="{{ url_for('static', path='/logo.png') }}" type="image/x-icon">
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex flex-col"> <!-- Добавлен flex-col для вертикального выравнивания -->
+
+    <!-- Header -->
+    <header class="bg-white bg-opacity-90 shadow-md z-10"> <!-- Фон хедера с прозрачностью -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16"> <!-- align-items center -->
+                <div class="flex items-center"> <!-- Логотип и название -->
+                    <img src="{{ url_for('static', path='/logo.png') }}" alt="Логотип" class="h-8 w-auto mr-2"> <!-- Логотип слева -->
+                    <span class="text-xl font-bold text-blue-500">Лодочная станция</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    {% if user %}
+                        <span class="text-gray-700 mr-4">Привет, {{ user.get('surname', user.get('login', 'Пользователь')) }}!</span>
+                        <a href="/api/auth/logout" class="text-red-600 hover:text-red-800">Выйти</a>
+                    {% else %}
+                        <a href="/api/auth/login_form" class="text-blue-600 hover:text-blue-500 mr-4">Войти</a>
+                        <a href="/api/auth/register_form" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-md transition duration-200">Регистрация</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow flex items-center bg-gray-70 justify-center p-4"> <!-- Центрируем содержимое -->
+        <div class="max-w-7xl mx-auto w-full "> <!-- max-width и центрирование -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-extrabold ttext-gray-900 sm:text-5xl ">
+                    Наслаждайтесь водой с комфортом
+                </h1>
+                <p class="mt-4 text-xl text-gray-700 drop-shadow-md"> <!-- Цвет текста чуть светлее -->
+                    Аренда лодок, катеров и других плавсредств на наших водоемах.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Water Bodies -->
+                <div class="info-card p-6 bg-white rounded-lg"> <!-- Добавлен класс info-card -->
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Водоемы</h2>
+                    <ul id="water-bodies-list" class="space-y-2 max-h-60 overflow-y-auto"> <!-- Ограничиваем высоту и добавляем скролл -->
+                        <!-- Filled by JS -->
+                        <li class="text-gray-500 text-center py-4">Загрузка...</li>
+                    </ul>
+                </div>
+
+                <!-- Vessels -->
+                <div class="info-card p-6 bg-white rounded-lg"> <!-- Добавлен класс info-card -->
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Плавсредства</h2>
+                    <div id="vessels-container" class="max-h-60 overflow-y-auto"> <!-- Ограничиваем высоту и добавляем скролл -->
+                        <!-- Filled by JS based on selected water body -->
+                        <p class="text-gray-500 italic text-center py-4">Выберите водоем, чтобы увидеть доступные плавсредства.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white bg-opacity-90 mt-auto py-4 shadow-inner z-10"> <!-- Фон футера с прозрачностью -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">
+            &copy; 2026 Лодочная станция. Курсовая работа.
+        </div>
+    </footer>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Загрузка списка водоемов
+        fetch('get_water')
+            .then(response => response.json())
+            .then(data => {
+                const listElement = document.getElementById('water-bodies-list');
+                listElement.innerHTML = ''; // Очистить перед заполнением
+                if (data.water_bodies && Array.isArray(data.water_bodies)) {
+                    data.water_bodies.forEach(wb => {
+                        const li = document.createElement('li');
+                        li.className = 'cursor-pointer p-2 hover:bg-blue-50 rounded border border-gray-200';
+                        li.textContent = wb.name;
+                        li.onclick = () => loadVesselsForWaterBody(wb.id, wb.name); // Передаем ID и NAME
+                        listElement.appendChild(li);
+                    });
+                } else {
+                    listElement.innerHTML = '<li class="text-red-500">Ошибка загрузки водоемов </li>';
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка при загрузке водоемов:', error);
+                document.getElementById('water-bodies-list').innerHTML = '<li class="text-red-500">Ошибка загрузки водоемов</li>';
+            });
+
+        // Функция загрузки плавсредств для водоема
+        function loadVesselsForWaterBody(waterBodyId, waterBodyName) {
+            fetch(`get_vessels_for_water_body/${waterBodyId}`) // Нужно создать этот эндпоинт или модифицировать существующий
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('vessels-container');
+                if (data.vessels && Array.isArray(data.vessels) && data.vessels.length > 0) {
+                    container.innerHTML = `
+                        <h3 class="text-lg font-medium text-gray-800 mb-2">Доступные на "${waterBodyName}":</h3>
+                        <ul class="space-y-2">
+                    `;
+                    data.vessels.forEach(v => {
+                        const li = document.createElement('li');
+                        li.className = 'p-2 bg-gray-50 rounded border border-gray-200';
+                        li.innerHTML = `${v.type_name}`;
+                        container.querySelector('ul').appendChild(li);
+                    });
+                    container.innerHTML += '</ul>';
+                } else {
+                    container.innerHTML = `<p class="text-gray-500 italic">На водоеме "${waterBodyName}" нет доступных плавсредств.</p>`;
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка при загрузке плавсредств:', error);
+                document.getElementById('vessels-container').innerHTML = '<p class="text-red-500">Ошибка загрузки плавсредств</p>';
+            });
+        }
+    });
+</script>
+{% endblock %}

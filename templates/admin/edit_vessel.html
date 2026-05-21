@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Редактировать плавсредство{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex">
+    {% include 'partials/admin_sidebar.html' %}
+
+    <main class="flex-1 p-8 overflow-y-auto">
+        <div class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto">
+            <h1 class="text-2xl font-bold text-gray-800 mb-6">Редактировать плавсредство</h1>
+
+            <form id="edit-vessel-form" class="space-y-6">
+                <input type="hidden" id="vessel-id" value="{{ vessel.id }}">
+
+                <div>
+                    <label for="vessel-name" class="block text-sm font-medium text-gray-700">Название</label>
+                    <input type="text" id="vessel-name" name="name" value="{{ vessel.name }}" required
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div>
+                    <label for="vessel-number" class="block text-sm font-medium text-gray-700">Номер</label>
+                    <input type="text" id="vessel-number" name="number" value="{{ vessel.number }}" required
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <div>
+                    <label for="vessel-type" class="block text-sm font-medium text-gray-700">Тип плавсредства</label>
+                    <select id="vessel-type" name="type_vessel_id" required
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="">-- Выберите тип --</option>
+                        {% for type in vessel_types %}
+                        <option value="{{ type.id }}" {% if type.id == vessel.type_vessel_id %}selected{% endif %}>
+                            {{ type.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="vessel-status" class="block text-sm font-medium text-gray-700">Текущий статус</label>
+                    <select id="vessel-status" name="current_status_id" required
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="">-- Выберите статус --</option>
+                        {% for status in vessel_statuses %}
+                        <option value="{{ status.id }}" {% if status.id == vessel.current_status_id %}selected{% endif %}>
+                            {{ status.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-4">
+                    <a href="/api/admin/vessels" class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Отмена
+                    </a>
+                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Сохранить изменения
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('edit-vessel-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const vesselId = document.getElementById('vessel-id').value;
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            const response = await fetch(`/api/admin/vessels/${vesselId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                alert(`Ошибка: ${errorData.detail || 'Неизвестная ошибка'}`);
+                return;
+            }
+
+            alert((await response.json()).msg);
+            window.location.href = '/api/admin/vessels';
+
+        } catch (error) {
+            console.error('Ошибка при обновлении плавсредства:', error);
+            alert('Произошла ошибка при обновлении плавсредства.');
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# IDE / редактор
+.idea/
+.vscode/
+.cursor/
+*.swp
+*.swo
+*~
+
+# Логи и временные файлы
+logs/
+*.log
+
+# Секреты и локальная конфигурация
+.env
+.env.local
+*.pem
+
+# Дубликаты скриншотов (в репозитории — docs/screenshots/)
+Скриншоты/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Кэш и отладка
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# Загрузки Cursor
+uploads/

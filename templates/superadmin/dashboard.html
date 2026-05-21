@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Панель владельца{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-100 via-violet-50/40 to-slate-100 flex">
+    {% include 'partials/owner_sidebar.html' %}
+
+    <main class="flex-1 p-6 md:p-8 overflow-y-auto">
+        <header class="mb-8">
+            <div class="flex flex-wrap items-end justify-between gap-4">
+                <div>
+                    <p class="text-sm font-medium text-violet-600 mb-1">Лодочная станция · владелец</p>
+                    <h1 class="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+                        Добро пожаловать{% if user.surname %}, {{ user.surname }}{% endif %}
+                    </h1>
+                    <p class="text-slate-600 mt-1 max-w-xl">Сводка по станции, персоналу и текущим операциям. Управление данными и мониторинг — в боковом меню.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <a href="/api/superadmin/crud" class="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-violet-700 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7"/></svg>
+                        База данных
+                    </a>
+                    <a href="/api/superadmin/logs" class="inline-flex items-center gap-2 rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-slate-900 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6"/></svg>
+                        Логи
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- KPI -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="rounded-2xl bg-white border border-slate-200/80 shadow-sm p-5 relative overflow-hidden">
+                <div class="absolute right-0 top-0 h-24 w-24 translate-x-6 -translate-y-6 rounded-full bg-blue-100/80"></div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Клиенты</p>
+                <p class="text-3xl font-bold text-blue-600 mt-1">{{ stats.total_clients or 0 }}</p>
+            </div>
+            <div class="rounded-2xl bg-white border border-slate-200/80 shadow-sm p-5 relative overflow-hidden">
+                <div class="absolute right-0 top-0 h-24 w-24 translate-x-6 -translate-y-6 rounded-full bg-emerald-100/80"></div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Инструкторы</p>
+                <p class="text-3xl font-bold text-emerald-600 mt-1">{{ stats.total_instructors or 0 }}</p>
+            </div>
+            <div class="rounded-2xl bg-white border border-slate-200/80 shadow-sm p-5 relative overflow-hidden">
+                <div class="absolute right-0 top-0 h-24 w-24 translate-x-6 -translate-y-6 rounded-full bg-amber-100/80"></div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Администраторы</p>
+                <p class="text-3xl font-bold text-amber-600 mt-1">{{ stats.total_admins or 0 }}</p>
+            </div>
+            <div class="rounded-2xl bg-white border border-slate-200/80 shadow-sm p-5 relative overflow-hidden">
+                <div class="absolute right-0 top-0 h-24 w-24 translate-x-6 -translate-y-6 rounded-full bg-violet-100/80"></div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Пользователей</p>
+                <p class="text-3xl font-bold text-violet-600 mt-1">{{ stats.total_users or 0 }}</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
+            <!-- Операции -->
+            <section class="xl:col-span-2 rounded-2xl bg-white border border-slate-200/80 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                    <h2 class="text-lg font-semibold text-slate-900">Операции на сегодня</h2>
+                </div>
+                <div class="p-6 grid sm:grid-cols-3 gap-4">
+                    <article class="rounded-xl border-2 border-red-200 bg-red-50/50 p-4">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500 text-white">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            </span>
+                            <p class="text-sm font-medium text-red-800">Активные аренды</p>
+                        </div>
+                        <p class="text-4xl font-bold text-red-600">{{ stats.active_rentals or 0 }}</p>
+                        <p class="text-xs text-red-600/80 mt-1">судно на воде, без возврата</p>
+                    </article>
+                    <article class="rounded-xl border-2 border-purple-200 bg-purple-50/50 p-4">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500 text-white">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </span>
+                            <p class="text-sm font-medium text-purple-800">Новые заявки</p>
+                        </div>
+                        <p class="text-4xl font-bold text-purple-600">{{ stats.pending_requests or 0 }}</p>
+                        <p class="text-xs text-purple-600/80 mt-1">ожидают инструктора</p>
+                    </article>
+                    <article class="rounded-xl border-2 border-cyan-200 bg-cyan-50/50 p-4">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-600 text-white">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </span>
+                            <p class="text-sm font-medium text-cyan-800">Ждут утверждения</p>
+                        </div>
+                        <p class="text-4xl font-bold text-cyan-700">{{ stats.awaiting_admin or 0 }}</p>
+                        <p class="text-xs text-cyan-700/80 mt-1">инструктаж проведён</p>
+                    </article>
+                </div>
+                <div class="px-6 pb-6">
+                    <a href="/api/admin/rentals" class="text-sm font-medium text-violet-600 hover:text-violet-800 inline-flex items-center gap-1">
+                        Открыть заявки в панели админа
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Флот -->
+            <section class="rounded-2xl bg-slate-900 text-white shadow-lg p-6 flex flex-col justify-between">
+                <div>
+                    <p class="text-xs uppercase tracking-widest text-slate-400 font-semibold">Инфраструктура</p>
+                    <h2 class="text-2xl font-bold mt-2">Флот станции</h2>
+                    <p class="text-6xl font-extrabold text-violet-400 mt-4">{{ stats.total_vessels or 0 }}</p>
+                    <p class="text-slate-400 text-sm mt-1">плавсредств в каталоге</p>
+                </div>
+                <a href="/api/admin/vessels" class="mt-6 inline-flex items-center justify-center rounded-xl bg-violet-600 hover:bg-violet-500 px-4 py-2.5 text-sm font-semibold transition-colors">
+                    Управление флотом
+                </a>
+            </section>
+        </div>
+
+        <!-- Быстрые действия -->
+        <section>
+            <h2 class="text-lg font-semibold text-slate-800 mb-4">Инструменты владельца</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <a href="/api/superadmin/crud" class="group block rounded-2xl bg-white border border-slate-200 p-6 shadow-sm hover:shadow-md hover:border-violet-300 transition-all">
+                    <div class="flex items-start gap-4">
+                        <div class="h-12 w-12 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center group-hover:bg-violet-600 group-hover:text-white transition-colors">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-900 group-hover:text-violet-700">Универсальный CRUD</h3>
+                            <p class="text-sm text-slate-600 mt-1">Прямое чтение и правка таблиц PostgreSQL: пользователи, аренды, судна, справочники.</p>
+                        </div>
+                    </div>
+                </a>
+                <a href="/api/superadmin/logs" class="group block rounded-2xl bg-white border border-slate-200 p-6 shadow-sm hover:shadow-md hover:border-slate-400 transition-all">
+                    <div class="flex items-start gap-4">
+                        <div class="h-12 w-12 rounded-xl bg-slate-800 text-slate-100 flex items-center justify-center group-hover:bg-slate-900 transition-colors">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3-3 3 3m0 6l-3 3-3-3"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-900">Поток логов</h3>
+                            <p class="text-sm text-slate-600 mt-1">Мониторинг service.log в реальном времени через SSE.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </section>
+    </main>
+</div>
+{% endblock %}

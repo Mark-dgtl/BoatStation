@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Создать аренду вручную{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex">
+    {% include 'partials/admin_sidebar.html' %}
+
+    <!-- Main Content -->
+    <main class="flex-1 p-8 overflow-y-auto">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h1 class="text-2xl font-bold text-gray-800 mb-6">Создать аренду вручную</h1>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Форма создания аренды -->
+                <div class="md:col-span-2">
+                    <form id="manual-rental-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <div>
+                            <label for="mr-client-search" class="block text-sm font-medium text-gray-700">Клиент (Поиск)</label>
+                            <div class="relative">
+                                <input
+                                    type="text"
+                                    id="mr-client-search"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    placeholder="Начните вводить фамилию..."
+                                    autocomplete="off"
+                                >
+                                <div id="mr-client-options"
+                                     class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto hidden">
+                                    {% for client in clients %}
+                                    <div class="client-item px-3 py-2 cursor-pointer hover:bg-indigo-600 hover:text-white text-sm"
+                                         data-id="{{ client.id }}"
+                                         data-name="{{ client.surname }} {{ client.name }}">
+                                        {{ client.surname }} {{ client.name }} (ID: {{ client.id }})
+                                    </div>
+                                    {% endfor %}
+                                    <!-- Сообщение, если ничего не найдено -->
+                                    <div id="mr-empty-msg" class="px-3 py-2 text-sm text-gray-500 hidden">Ничего не найдено</div>
+                                </div>
+                                <!-- Скрытое поле для отправки ID клиента -->
+                                <input type="hidden" id="mr-client-id" name="client_id" value="">
+                            </div>
+                        </div>
+                            <div>
+                                <label for="mr-instruction-id" class="block text-sm font-medium text-gray-700">Инструктаж</label>
+                                <select id="mr-instruction-id" name="instruction_id" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <option value="">-- Выберите инструктаж --</option>
+                                    {% for instr in instructions %}
+                                    <option value="{{ instr.id }}">ID {{ instr.id }} | {{ instr.instructor_surname }} | {{ instr.type_instruction_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label for="mr-vessel-id" class="block text-sm font-medium text-gray-700">Плавсредство</label>
+                                <select id="mr-vessel-id" name="vessel_id" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <option value="">-- Выберите плавсредство --</option>
+                                    {% for vessel in vessels %}
+                                    <option value="{{ vessel.id }}">{{ vessel.name }} ({{ vessel.number }}) — {{ vessel.type_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label for="mr-water-body-id" class="block text-sm font-medium text-gray-700">Водоем</label>
+                                <select id="mr-water-body-id" name="water_body_id" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <option value="">-- Выберите водоем --</option>
+                                    {% for wb in water_bodies %}
+                                    <option value="{{ wb.id }}">{{ wb.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label for="mr-start-time" class="block text-sm font-medium text-gray-700">Время начала</label>
+                                <input type="datetime-local" id="mr-start-time" name="start_time" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="mr-return-time" class="block text-sm font-medium text-gray-700">Фактический возврат</label>
+                                <input type="datetime-local" id="mr-return-time" name="return_time" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <p class="mt-1 text-xs text-gray-500">Оставьте пустым, чтобы аренда отображалась как «в прокате». Заполняйте только если плавсредство уже сдано.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end space-x-3 pt-4">
+                            <button type="button" onclick="resetForm()" class="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Сбросить
+                            </button>
+                            <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                Создать аренду
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Информационная панель -->
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <h3 class="text-lg font-medium text-blue-800 mb-2">Как это работает</h3>
+                    <ul class="text-sm text-blue-700 space-y-1 list-disc pl-5">
+                        <li>Выберите клиента, плавсредство, водоем и инструктаж.</li>
+                        <li>Убедитесь, что плавсредство свободно на указанный период (проверка будет выполнена на сервере).</li>
+                        <li>Если инструктаж ещё не проведён, вы можете создать его вручную через другую форму или назначить существующий.</li>
+                        <li>После создания аренда появится в списке активных аренд и у клиента в личном кабинете.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function resetForm() {
+        document.getElementById('manual-rental-form').reset();
+        document.getElementById('mr-client-id').value = '';
+        document.getElementById('mr-client-search').value = '';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const rentalForm = document.getElementById('manual-rental-form');
+        if (rentalForm) {
+            rentalForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const clientId = document.getElementById('mr-client-id').value;
+                if (!clientId) {
+                    alert('Выберите клиента из списка');
+                    return;
+                }
+                const payload = {
+                    client_id: clientId,
+                    instruction_id: document.getElementById('mr-instruction-id').value,
+                    vessel_id: document.getElementById('mr-vessel-id').value,
+                    water_body_id: document.getElementById('mr-water-body-id').value,
+                    start_time: document.getElementById('mr-start-time').value,
+                    return_time: document.getElementById('mr-return-time').value || null
+                };
+                try {
+                    const response = await fetch('/api/admin/create_rental_manual', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await response.json();
+                    if (!response.ok) {
+                        alert('Ошибка: ' + (data.detail || 'Не удалось создать аренду'));
+                        return;
+                    }
+                    alert(data.msg || 'Аренда создана');
+                    resetForm();
+                } catch (err) {
+                    console.error(err);
+                    alert('Ошибка при создании аренды');
+                }
+            });
+        }
+
+        const input = document.getElementById('mr-client-search');
+        const dropdown = document.getElementById('mr-client-options');
+        if (input && dropdown) {
+            const hiddenInput = document.getElementById('mr-client-id');
+            const items = dropdown.querySelectorAll('.client-item');
+            const emptyMsg = document.getElementById('mr-empty-msg');
+
+            input.addEventListener('focus', () => dropdown.classList.remove('hidden'));
+
+            input.addEventListener('input', function() {
+                const filter = (this.value || "").toLowerCase().trim();
+                let hasResults = false;
+                if (filter === "") {
+                    items.forEach(item => item.classList.remove('hidden'));
+                    dropdown.classList.remove('hidden');
+                    if (emptyMsg) emptyMsg.classList.add('hidden');
+                    return;
+                }
+                if (this.value === "") hiddenInput.value = "";
+                items.forEach(item => {
+                    const text = (item.textContent || "").toLowerCase();
+                    if (text.includes(filter)) {
+                        item.classList.remove('hidden');
+                        hasResults = true;
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
+                if (emptyMsg) emptyMsg.classList.toggle('hidden', hasResults);
+                dropdown.classList.remove('hidden');
+            });
+
+            items.forEach(item => {
+                item.addEventListener('click', function() {
+                    input.value = this.dataset.name;
+                    hiddenInput.value = this.dataset.id;
+                    dropdown.classList.add('hidden');
+                });
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.relative')) dropdown.classList.add('hidden');
+            });
+        }
+    });
+</script>
+{% endblock %}

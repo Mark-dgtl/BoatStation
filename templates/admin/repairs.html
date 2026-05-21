@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Журнал ремонтов{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex">
+    {% include 'partials/admin_sidebar.html' %}
+
+    <!-- Main Content -->
+    <main class="flex-1 p-8 overflow-y-auto">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">
+                Журнал ремонтов (Техническое состояние)
+            </h1>
+            <button onclick="openAddConditionModal()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                Добавить запись о состоянии
+            </button>
+        </div>
+            <!-- Log Entries Table -->
+            {% if repair_logs %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Плавсредство</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Тип состояния</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата изменения</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for log in repair_logs %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ log.id }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ log.vessel_name }} ({{ log.vessel_number }})</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ log.condition_name }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ log.changed_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-gray-500 italic">Журнал ремонтов пуст.</p>
+            {% endif %}
+
+
+        </div>
+    </main>
+</div>
+
+<!-- Modal for Adding Condition -->
+<div id="add-condition-modal" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto h-[calc(100%-1rem)] max-h-full bg-black bg-opacity-50">
+    <div class="relative w-full max-w-md max-h-full mx-auto">
+        <div class="relative bg-white rounded-lg shadow">
+            <button type="button" onclick="closeAddConditionModal()" class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+            </button>
+            <div class="p-6">
+                <h3 class="mb-4 text-lg font-medium text-gray-900">Добавить запись о тех. состоянии</h3>
+                <form id="add-condition-form">
+                    <div class="mb-4">
+                        <label for="modal-vessel-select" class="block mb-2 text-sm font-medium text-gray-900">Выберите плавсредство:</label>
+                        <select id="modal-vessel-select" name="vessel_id" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                            <option value="">-- Загрузка... --</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="modal-condition-type" class="block mb-2 text-sm font-medium text-gray-900">Тип состояния:</label>
+                        <select id="modal-condition-type" name="type_condition_id" required class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                            <option value="">-- Выберите тип --</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Добавить запись</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function openAddConditionModal() {
+        document.getElementById('add-condition-modal').classList.remove('hidden');
+        loadVesselsAndConditions(); // Load data when modal opens
+    }
+
+    function closeAddConditionModal() {
+        document.getElementById('add-condition-modal').classList.add('hidden');
+    }
+
+    async function loadVesselsAndConditions() {
+        try {
+            // Load Vessels
+            const vesselsResponse = await fetch('/api/admin/get_vessels'); // Reuse endpoint
+            if (vesselsResponse.ok) {
+                const vessels = await vesselsResponse.json();
+                const select = document.getElementById('modal-vessel-select');
+                select.innerHTML = '<option value="">-- Выберите плавсредство --</option>';
+                vessels.forEach(vessel => {
+                    const option = document.createElement('option');
+                    option.value = vessel.id;
+                    option.textContent = `${vessel.name} (${vessel.number})`;
+                    select.appendChild(option);
+                });
+            }
+
+            // Load Condition Types
+            const typesResponse = await fetch('/api/admin/get_condition_types'); // Assuming this endpoint exists
+            if (typesResponse.ok) {
+                const types = await typesResponse.json();
+                const select = document.getElementById('modal-condition-type');
+                select.innerHTML = '<option value="">-- Выберите тип --</option>';
+                types.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type.id;
+                    option.textContent = type.name;
+                    select.appendChild(option);
+                });
+            }
+
+        } catch (error) {
+            console.error('Ошибка при загрузке данных для модалки:', error);
+            alert('Произошла ошибка при загрузке данных.');
+        }
+    }
+
+    document.getElementById('add-condition-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            const response = await fetch('/api/admin/add_condition_log', { // Assuming this endpoint exists
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                alert(`Ошибка: ${errorData.detail || 'Неизвестная ошибка'}`);
+                return;
+            }
+
+            const result = await response.json();
+            alert(result.msg);
+            closeAddConditionModal();
+            location.reload(); // Reload to see the new entry
+
+        } catch (error) {
+            console.error('Ошибка при добавлении записи о состоянии:', error);
+            alert('Произошла ошибка при добавлении записи.');
+        }
+    });
+</script>
+{% endblock %}

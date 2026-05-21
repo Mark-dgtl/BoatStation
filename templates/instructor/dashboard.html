@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Инструктажи — {{ instructor.surname }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100 flex">
+    <aside class="w-64 bg-white/90 backdrop-blur border-r border-slate-200 shadow-sm flex-shrink-0 flex flex-col">
+        <div class="p-5 border-b border-slate-100">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white text-sm font-bold">И</span>
+                <div>
+                    <h2 class="text-sm font-semibold text-slate-800 leading-tight">Инструктор</h2>
+                    <p class="text-xs text-slate-500">{{ instructor.surname }}</p>
+                </div>
+            </div>
+            <p class="text-xs text-slate-400 mt-2">{{ user.login }}</p>
+        </div>
+        <div class="flex-1"></div>
+        <div class="p-4 border-t border-slate-100">
+            <a href="/api/auth/logout" class="text-sm text-slate-600 hover:text-red-600 font-medium">Выйти</a>
+        </div>
+    </aside>
+
+    <main class="flex-1 p-6 md:p-8 overflow-y-auto">
+        <header class="mb-8">
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Мои инструктажи</h1>
+            <p class="text-slate-600 mt-1">Подтвердите инструктаж по заявкам и просматривайте историю</p>
+        </header>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+            <div class="rounded-2xl bg-white border border-amber-200/80 shadow-sm p-5 flex items-center gap-4">
+                <div class="h-12 w-12 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Ожидают подтверждения</p>
+                    <p class="text-3xl font-bold text-amber-600">{{ assigned_requests|length }}</p>
+                </div>
+            </div>
+            <div class="rounded-2xl bg-white border border-emerald-200/80 shadow-sm p-5 flex items-center gap-4">
+                <div class="h-12 w-12 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Проведено</p>
+                    <p class="text-3xl font-bold text-emerald-600">{{ conducted_instructions|length }}</p>
+                </div>
+            </div>
+        </div>
+
+        <section class="mb-12">
+            <h2 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                <span class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
+                Предстоящие заявки
+            </h2>
+            {% if assigned_requests %}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {% for req in assigned_requests %}
+                <article class="group relative overflow-hidden rounded-2xl bg-white shadow-md hover:shadow-lg transition-all duration-300 border border-slate-200/80">
+                    <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500"></div>
+                    <div class="p-5">
+                        <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+                            <div>
+                                <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800 mb-2">Заявка №{{ req.id }}</span>
+                                <h3 class="text-lg font-bold text-slate-900">{{ req.client.surname }}</h3>
+                            </div>
+                            <span class="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700">
+                                <svg class="h-3.5 w-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                {{ req.desired_start.strftime('%d.%m.%Y') }}
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div class="rounded-xl bg-blue-50/80 border border-blue-100 p-3">
+                                <p class="text-[10px] uppercase tracking-wider font-semibold text-blue-600/80 mb-1">Плавсредство</p>
+                                <p class="text-sm font-semibold text-slate-900">{{ req.vessel.name }}</p>
+                                {% if req.vessel.number %}<p class="text-xs text-slate-500">{{ req.vessel.number }} · {{ req.vessel.type_name }}</p>{% endif %}
+                            </div>
+                            <div class="rounded-xl bg-cyan-50/80 border border-cyan-100 p-3">
+                                <p class="text-[10px] uppercase tracking-wider font-semibold text-cyan-700/80 mb-1">Водоём</p>
+                                <p class="text-sm font-semibold text-slate-900">{{ req.water_body.name }}</p>
+                            </div>
+                        </div>
+
+                        <div class="rounded-xl bg-slate-50 border border-slate-100 px-3 py-2.5 mb-4 flex items-center justify-between text-sm">
+                            <span class="text-slate-500">Время аренды</span>
+                            <span class="font-semibold text-slate-800">
+                                {{ req.desired_start.strftime('%H:%M') }} — {{ req.desired_end.strftime('%H:%M') }}
+                            </span>
+                        </div>
+
+                        <button type="button" onclick="confirmInstruction({{ req.id }})"
+                                class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:from-emerald-700 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition-all">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Подтвердить инструктаж
+                        </button>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="rounded-2xl border-2 border-dashed border-slate-200 bg-white/60 py-14 text-center">
+                <p class="text-slate-500 font-medium">Нет назначенных заявок</p>
+                <p class="text-sm text-slate-400 mt-1">Новые появятся после назначения администратором</p>
+            </div>
+            {% endif %}
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-slate-800 mb-4">Проведённые инструктажи</h2>
+            {% if conducted_instructions %}
+            <div class="rounded-2xl bg-white shadow-md border border-slate-200/80 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">№</th>
+                                <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Тип</th>
+                                <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Время проведения</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for instr in conducted_instructions %}
+                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                <td class="px-5 py-3.5 text-sm font-medium text-slate-900">{{ instr.instruction_id }}</td>
+                                <td class="px-5 py-3.5 text-sm text-slate-700">{{ instr.instruction_type }}</td>
+                                <td class="px-5 py-3.5 text-sm text-slate-700">
+                                    {% if instr.time_conducted %}{{ instr.time_conducted.strftime('%d.%m.%Y %H:%M') }}{% else %}—{% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-slate-500 text-sm rounded-2xl border border-dashed border-slate-200 py-10 text-center bg-white/60">История пока пуста</p>
+            {% endif %}
+        </section>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    async function confirmInstruction(requestId) {
+        if (!confirm('Подтвердить, что инструктаж по этой заявке проведён?')) return;
+        try {
+            const response = await fetch(`/api/instructor/confirm_instruction/${requestId}`, { method: 'PUT' });
+            const data = await response.json();
+            if (!response.ok) {
+                alert('Ошибка: ' + (data.detail || 'Не удалось подтвердить'));
+                return;
+            }
+            alert(data.msg || 'Инструктаж подтверждён');
+            location.reload();
+        } catch (e) {
+            console.error(e);
+            alert('Ошибка при подтверждении');
+        }
+    }
+</script>
+{% endblock %}

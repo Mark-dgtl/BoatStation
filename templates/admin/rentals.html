@@ -1,0 +1,482 @@
+{% extends "base.html" %}
+
+{% block title %}Панель администратора{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex">
+    {% include 'partials/admin_sidebar.html' %}
+
+    <main class="flex-1 p-8 overflow-y-auto">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">Добро пожаловать, {{ user.login }}!</h1>
+            <p class="text-gray-600 mb-6">Управление арендами и заявками</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-8 h-stats-grid">
+                <div class="bg-blue-50 px-4 pt-4 pb-4 rounded-lg border border-blue-200">
+                    <h3 class="text-lg font-semibold text-blue-800">Активные аренды</h3>
+                    <p class="text-3xl font-bold text-blue-600">{{ stats.active_rentals }}</p>
+                </div>
+                <div class="bg-yellow-50 px-4 pt-4 pb-4 rounded-lg border border-yellow-200">
+                    <h3 class="text-lg font-semibold text-yellow-800">Новые заявки</h3>
+                    <p class="text-3xl font-bold text-yellow-600">{{ stats.pending_requests }}</p>
+                </div>
+                <div class="bg-green-50 px-4 pt-4 pb-4 rounded-lg border border-green-200">
+                    <h3 class="text-lg font-semibold text-green-800">Свободные плавсредства</h3>
+                    <p class="text-3xl font-bold text-green-600">{{ stats.free_vessels }}</p>
+                </div>
+                <div class="bg-purple-50 px-4 pt-4 pb-4 rounded-lg border border-purple-200">
+                    <h3 class="text-lg font-semibold text-purple-800">Всего плавсредств</h3>
+                    <p class="text-3xl font-bold text-purple-600">{{ stats.total_vessels }}</p>
+                </div>
+            </div>
+
+            <div class="border-b border-gray-200 mb-6">
+                <nav class="-mb-px flex flex-wrap gap-2 sm:gap-6" aria-label="Разделы аренды">
+                    <button type="button" data-tab="pending" class="rental-tab px-1 py-3 text-sm font-medium border-b-2 border-blue-500 text-blue-600 whitespace-nowrap">
+                        Новые заявки
+                        {% if pending_requests %}<span class="ml-1 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{{ pending_requests|length }}</span>{% endif %}
+                    </button>
+                    <button type="button" data-tab="active" class="rental-tab px-1 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
+                        Текущие аренды
+                        {% if active_rentals %}<span class="ml-1 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{{ active_rentals|length }}</span>{% endif %}
+                    </button>
+                    <button type="button" data-tab="new" class="rental-tab px-1 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
+                        Новая аренда
+                    </button>
+                </nav>
+            </div>
+
+            <div id="tab-panel-pending" class="tab-panel grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {% if pending_requests %}
+                    {% for req in pending_requests %}
+                    <article id="request-{{ req.id }}"
+                             class="overflow-hidden rounded-xl border-2 border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
+                        <div class="grid grid-cols-2 gap-3 p-4 sm:p-5">
+                            <div class="col-span-2 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between border-b border-gray-100 pb-3">
+                                <div class="min-w-0">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <h3 class="text-base font-bold text-gray-900 sm:text-lg">Заявка №{{ req.id }}</h3>
+                                        {% if req.status == 'pending' %}
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                            Ожидает
+                                        </span>
+                                        {% elif req.status == 'instructor_confirmed' %}
+                                        <span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">Инструктаж проведён</span>
+                                        {% else %}
+                                        <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700">{{ req.status }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="mt-1 text-xs text-gray-500 sm:text-sm">
+                                        {{ req.desired_start.strftime('%d.%m.%Y %H:%M') }} — {{ req.desired_end.strftime('%d.%m.%Y %H:%M') }}
+                                    </p>
+                                </div>
+                                <div class="flex flex-col items-stretch gap-2 sm:items-end shrink-0">
+                                    <div class="flex flex-wrap gap-2 justify-end">
+                                        {% if req.status == 'instructor_confirmed' %}
+                                        <button type="button" onclick="approveRequest({{ req.id }})"
+                                                class="inline-flex items-center justify-center gap-1 rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-green-700 sm:text-sm whitespace-nowrap">
+                                            <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                            Утвердить
+                                        </button>
+                                        {% else %}
+                                        <button type="button" disabled
+                                                title="Сначала инструктор должен подтвердить инструктаж"
+                                                class="inline-flex items-center justify-center gap-1 rounded-lg bg-gray-200 px-3 py-2 text-xs font-semibold text-gray-400 cursor-not-allowed sm:text-sm whitespace-nowrap">
+                                            <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                            Утвердить
+                                        </button>
+                                        {% endif %}
+                                        <button type="button" onclick="rejectRequest({{ req.id }})"
+                                                class="inline-flex items-center justify-center gap-1 rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 sm:text-sm whitespace-nowrap">
+                                            <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                            Отклонить
+                                        </button>
+                                    </div>
+                                    {% if req.status == 'pending' %}
+                                    <p class="text-xs text-amber-700 text-right">Сначала инструктаж у инструктора</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2 rounded-lg border border-gray-100 bg-slate-50/80 p-3 min-h-[4.5rem]">
+                                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Клиент</p>
+                                    <p class="truncate text-sm font-semibold text-gray-900">{{ req.client.surname }}</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2 rounded-lg border border-gray-100 bg-slate-50/80 p-3 min-h-[4.5rem]">
+                                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Плавсредство</p>
+                                    <p class="truncate text-sm font-semibold text-gray-900">{{ req.vessel.name }}</p>
+                                    <p class="truncate text-xs text-gray-600">{{ req.vessel.number }}</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2 rounded-lg border border-gray-100 bg-slate-50/80 p-3 min-h-[4.5rem]">
+                                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-100 text-cyan-600">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Водоём</p>
+                                    <p class="truncate text-sm font-semibold text-gray-900">{{ req.water_body.name }}</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2 rounded-lg border border-gray-100 bg-slate-50/80 p-3 min-h-[4.5rem]">
+                                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                                </div>
+                                <div class="min-w-0" id="assigned-instructor-label-{{ req.id }}">
+                                    <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Инструктор</p>
+                                    <p class="truncate text-sm font-semibold {% if req.assigned_instructor %}text-gray-900{% else %}text-gray-400{% endif %}">
+                                        <span>{{ req.assigned_instructor.surname if req.assigned_instructor else 'Не назначен' }}</span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="col-span-2 border-t border-gray-100 bg-gray-50/60 -mx-4 sm:-mx-5 px-4 sm:px-5 py-3 mt-1">
+                            <label for="instructor-select-{{ req.id }}" class="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700">
+                                <svg class="h-4 w-4 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                                Назначить инструктора
+                            </label>
+                            <select id="instructor-select-{{ req.id }}"
+                                    class="instructor-select w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                    data-request-id="{{ req.id }}"
+                                    onchange="onInstructorChange(this)">
+                                <option value="">— Выберите инструктора —</option>
+                                {% for inst in instructors %}
+                                <option value="{{ inst.id }}"
+                                        {% if req.assigned_instructor and req.assigned_instructor.id == inst.id %}selected{% endif %}>
+                                    {{ inst.surname }}{% if inst.position %} ({{ inst.position }}){% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            </div>
+                        </div>
+                    </article>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-span-full flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 py-16 text-center">
+                        <div class="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-600">
+                            <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        </div>
+                        <p class="font-medium text-gray-700">Нет новых заявок</p>
+                        <p class="mt-1 text-sm text-gray-500">Все заявки обработаны — отличная работа!</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div id="tab-panel-active" class="tab-panel hidden">
+                {% if active_rentals %}
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Клиент</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Плавсредство</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Водоем</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Время выдачи</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Действие</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for rental in active_rentals %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ rental.client_surname }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ rental.vessel_name }} ({{ rental.vessel_number }})</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ rental.water_body }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ rental.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <button onclick="markAsReturned({{ rental.rental_id }})" class="text-green-600 hover:text-green-900">Отметить возврат</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-gray-500 italic">Нет активных аренд.</p>
+                {% endif %}
+            </div>
+
+            <div id="tab-panel-new" class="tab-panel hidden">
+                <form id="manual-rental-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="mr-client-search" class="block text-sm font-medium text-gray-700">Клиент (Поиск)</label>
+                            <div class="relative">
+                                <input type="text" id="mr-client-search"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    placeholder="Начните вводить фамилию..." autocomplete="off">
+                                <div id="mr-client-options"
+                                     class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto hidden">
+                                    {% for client in clients %}
+                                    <div class="client-item px-3 py-2 cursor-pointer hover:bg-indigo-600 hover:text-white text-sm"
+                                         data-id="{{ client.id }}" data-name="{{ client.surname }}">
+                                        {{ client.surname }} (ID: {{ client.id }})
+                                    </div>
+                                    {% endfor %}
+                                    <div id="mr-empty-msg" class="px-3 py-2 text-sm text-gray-500 hidden">Ничего не найдено</div>
+                                </div>
+                                <input type="hidden" id="mr-client-id" name="client_id" value="">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="mr-instruction-id" class="block text-sm font-medium text-gray-700">Инструктаж</label>
+                            <select id="mr-instruction-id" name="instruction_id" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="">-- Выберите инструктаж --</option>
+                                {% for instr in instructions %}
+                                <option value="{{ instr.id }}">ID {{ instr.id }} | {{ instr.instructor_surname }} | {{ instr.type_instruction_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="mr-vessel-id" class="block text-sm font-medium text-gray-700">Плавсредство</label>
+                            <select id="mr-vessel-id" name="vessel_id" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="">-- Выберите плавсредство --</option>
+                                {% for vessel in vessels %}
+                                <option value="{{ vessel.id }}">{{ vessel.name }} ({{ vessel.number }}) — {{ vessel.type_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="mr-water-body-id" class="block text-sm font-medium text-gray-700">Водоем</label>
+                            <select id="mr-water-body-id" name="water_body_id" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="">-- Выберите водоем --</option>
+                                {% for wb in water_bodies %}
+                                <option value="{{ wb.id }}">{{ wb.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="mr-start-time" class="block text-sm font-medium text-gray-700">Время начала</label>
+                            <input type="datetime-local" id="mr-start-time" name="start_time" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="mr-return-time" class="block text-sm font-medium text-gray-700">Фактический возврат</label>
+                            <input type="datetime-local" id="mr-return-time" name="return_time" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <p class="mt-1 text-xs text-gray-500">Пусто = аренда «в прокате». Заполняйте только после сдачи плавсредства.</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            Создать аренду
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function showAlert(message, isError = false) {
+        alert(message);
+    }
+
+    function switchRentalTab(tabName) {
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+        document.querySelectorAll('.rental-tab').forEach(btn => {
+            btn.classList.remove('border-blue-500', 'text-blue-600');
+            btn.classList.add('border-transparent', 'text-gray-500');
+        });
+        const panel = document.getElementById('tab-panel-' + tabName);
+        if (panel) panel.classList.remove('hidden');
+        const activeBtn = document.querySelector('.rental-tab[data-tab="' + tabName + '"]');
+        if (activeBtn) {
+            activeBtn.classList.add('border-blue-500', 'text-blue-600');
+            activeBtn.classList.remove('border-transparent', 'text-gray-500');
+        }
+    }
+
+    async function onInstructorChange(selectEl) {
+        const requestId = selectEl.dataset.requestId;
+        const instructorId = selectEl.value;
+        if (!instructorId) return;
+
+        try {
+            const response = await fetch('/api/admin/requests/' + requestId + '/assign_instructor', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ instructor_id: parseInt(instructorId, 10) })
+            });
+            if (!response.ok) {
+                const err = await response.json();
+                showAlert('Ошибка: ' + (err.detail || 'Не удалось назначить инструктора'), true);
+                return;
+            }
+            const label = document.querySelector('#assigned-instructor-label-' + requestId + ' span');
+            if (label) label.textContent = selectEl.options[selectEl.selectedIndex].text.trim();
+        } catch (e) {
+            console.error(e);
+            showAlert('Ошибка при назначении инструктора', true);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.rental-tab').forEach(btn => {
+            btn.addEventListener('click', () => switchRentalTab(btn.dataset.tab));
+        });
+
+        const hash = window.location.hash;
+        if (hash && hash.startsWith('#request-')) {
+            switchRentalTab('pending');
+            const el = document.querySelector(hash);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        const rentalForm = document.getElementById('manual-rental-form');
+        if (rentalForm) {
+            rentalForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const clientId = document.getElementById('mr-client-id').value;
+                if (!clientId) {
+                    showAlert('Выберите клиента из списка', true);
+                    return;
+                }
+                const payload = {
+                    client_id: clientId,
+                    instruction_id: document.getElementById('mr-instruction-id').value,
+                    vessel_id: document.getElementById('mr-vessel-id').value,
+                    water_body_id: document.getElementById('mr-water-body-id').value,
+                    start_time: document.getElementById('mr-start-time').value,
+                    return_time: document.getElementById('mr-return-time').value || null
+                };
+                try {
+                    const response = await fetch('/api/admin/create_rental_manual', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await response.json();
+                    if (!response.ok) {
+                        showAlert('Ошибка: ' + (data.detail || 'Не удалось создать аренду'), true);
+                        return;
+                    }
+                    showAlert(data.msg || 'Аренда создана');
+                    location.reload();
+                } catch (err) {
+                    console.error(err);
+                    showAlert('Ошибка при создании аренды', true);
+                }
+            });
+        }
+
+        const input = document.getElementById('mr-client-search');
+        const dropdown = document.getElementById('mr-client-options');
+        if (input && dropdown) {
+            const hiddenInput = document.getElementById('mr-client-id');
+            const items = dropdown.querySelectorAll('.client-item');
+            const emptyMsg = document.getElementById('mr-empty-msg');
+
+            input.addEventListener('focus', () => dropdown.classList.remove('hidden'));
+
+            input.addEventListener('input', function() {
+                const filter = (this.value || "").toLowerCase().trim();
+                let hasResults = false;
+                if (filter === "") {
+                    items.forEach(item => item.classList.remove('hidden'));
+                    dropdown.classList.remove('hidden');
+                    if (emptyMsg) emptyMsg.classList.add('hidden');
+                    return;
+                }
+                if (this.value === "") hiddenInput.value = "";
+                items.forEach(item => {
+                    const text = (item.textContent || "").toLowerCase();
+                    if (text.includes(filter)) {
+                        item.classList.remove('hidden');
+                        hasResults = true;
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
+                if (emptyMsg) emptyMsg.classList.toggle('hidden', hasResults);
+                dropdown.classList.remove('hidden');
+            });
+
+            items.forEach(item => {
+                item.addEventListener('click', function() {
+                    input.value = this.dataset.name;
+                    hiddenInput.value = this.dataset.id;
+                    dropdown.classList.add('hidden');
+                });
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.relative')) dropdown.classList.add('hidden');
+            });
+        }
+    });
+
+    async function approveRequest(requestId) {
+        try {
+            const response = await fetch(`/api/admin/requests/${requestId}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'approved', admin_comment: null })
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                showAlert(`Ошибка: ${errorData.detail || 'Неизвестная ошибка'}`, true);
+                return;
+            }
+            showAlert((await response.json()).msg);
+            location.reload();
+        } catch (error) {
+            console.error('Ошибка при утверждении заявки:', error);
+            showAlert('Произошла ошибка при утверждении заявки.', true);
+        }
+    }
+
+    async function rejectRequest(requestId) {
+        try {
+            const response = await fetch(`/api/admin/requests/${requestId}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'rejected', admin_comment: null })
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                showAlert(`Ошибка: ${errorData.detail || 'Неизвестная ошибка'}`, true);
+                return;
+            }
+            showAlert((await response.json()).msg);
+            location.reload();
+        } catch (error) {
+            console.error('Ошибка при отклонении заявки:', error);
+            showAlert('Произошла ошибка при отклонении заявки.', true);
+        }
+    }
+
+    async function markAsReturned(rentalId) {
+        const now = new Date().toISOString().slice(0, 16);
+        const returnTime = prompt("Введите время возврата (YYYY-MM-DD HH:MM) или нажмите OK для текущего времени:", now);
+        if (returnTime === null) return;
+        const formattedReturnTime = returnTime.replace('T', ' ') + ':00';
+        try {
+            const response = await fetch(`/api/admin/mark_rental_returned/${rentalId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ return_time: formattedReturnTime })
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                showAlert(`Ошибка: ${errorData.detail || 'Неизвестная ошибка'}`, true);
+                return;
+            }
+            showAlert((await response.json()).msg);
+            location.reload();
+        } catch (error) {
+            console.error('Ошибка при отметке возврата:', error);
+            showAlert('Произошла ошибка при отметке возврата.', true);
+        }
+    }
+</script>
+{% endblock %}

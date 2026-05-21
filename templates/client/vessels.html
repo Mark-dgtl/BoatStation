@@ -1,0 +1,480 @@
+{% extends "base.html" %}
+
+{% block title %}Плавсредства - {{ client.surname }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex">
+<!-- Добавлен класс relative, min-h-screen и pb-20 для фиксации кнопки внизу -->
+<aside class="w-64 bg-white shadow-lg flex-shrink-0 min-h-screen border-r relative pb-20">
+    <!-- Шапка сайдбара с логотипом -->
+    <div class="px-4 h-16 flex items-center border-b bg-gray-50/50">
+        <img src="{{ url_for('static', path='/logo.png') }}" alt="Логотип" class="h-8 w-auto mr-2">
+        <span class="text-xl font-bold text-blue-500">Лодочная станция</span>
+    </div>
+
+    <!-- Информация о клиенте -->
+    <div class="p-4 border-b">
+        <h2 class="text-lg font-semibold text-gray-800">Личный кабинет</h2>
+        <p class="text-sm text-gray-600">
+            {% if client is defined %}{{ client.surname }}{% else %}Клиент{% endif %}
+        </p>
+    </div>
+
+    <!-- Навигационное меню клиента -->
+    <nav class="p-2">
+        <ul class="space-y-2">
+            <!-- Личные данные -->
+            <li>
+                <a href="/api/client/profile"
+                   class="flex items-center p-3 rounded-lg font-medium transition-all duration-200
+                   {% if request.path == '/api/client/profile' %} bg-blue-100 text-blue-700 shadow-sm {% else %} text-gray-700 hover:text-blue-600 hover:bg-blue-50 hover:shadow-md {% endif %}">
+                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Личные данные
+                </a>
+            </li>
+
+            <!-- Аренда -->
+            <li>
+                <a href="/api/client/rentals"
+                   class="flex items-center p-3 rounded-lg font-medium transition-all duration-200
+                   {% if request.path == '/api/client/rentals' %} bg-blue-100 text-blue-700 shadow-sm {% else %} text-gray-700 hover:text-blue-600 hover:bg-blue-50 hover:shadow-md {% endif %}">
+                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    Аренда
+                </a>
+            </li>
+
+            <!-- Плавсредства -->
+            <li>
+                <a href="/api/client/vessels"
+                   class="flex items-center p-3 rounded-lg font-medium transition-all duration-200
+                   {% if request.path == '/api/client/vessels' %} bg-blue-100 text-blue-700 shadow-sm {% else %} text-gray-700 hover:text-blue-600 hover:bg-blue-50 hover:shadow-md {% endif %}">
+                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Плавсредства
+                </a>
+            </li>
+
+            <!-- Водоемы -->
+            <li>
+                <a href="/api/client/water_bodies"
+                   class="flex items-center p-3 rounded-lg font-medium transition-all duration-200
+                   {% if request.path == '/api/client/water_bodies' %} bg-blue-100 text-blue-700 shadow-sm {% else %} text-gray-700 hover:text-blue-600 hover:bg-blue-50 hover:shadow-md {% endif %}">
+                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Водоемы
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Кнопка «Выйти», жестко зафиксированная внизу -->
+    <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-100 bg-white">
+        <a href="/api/auth/logout" class="flex items-center p-3 text-gray-600 hover:text-red-600 hover:bg-red-50 hover:shadow-md rounded-lg transition-all duration-200 font-medium">
+            <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Выйти
+        </a>
+    </div>
+</aside>
+
+<!-- Main Content -->
+<main class="flex-1 p-6 lg:p-8 bg-gray-50 overflow-y-auto">
+    <div class="max-w-7xl mx-auto">
+        <!-- Заголовок страницы -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Доступные плавсредства</h1>
+            <p class="mt-2 text-sm text-gray-600">Выберите подходящее судно для бронирования и проверьте его характеристики.</p>
+
+            <div class="mt-5 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
+                <label for="vessel-type-filter" class="text-sm font-semibold text-gray-700 shrink-0">Тип плавсредства</label>
+                <select id="vessel-type-filter"
+                        class="w-full sm:w-auto sm:min-w-[220px] bg-white border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 px-4 py-2.5 shadow-sm outline-none transition-all">
+                    <option value="">Все типы ({{ vessels|length }})</option>
+                    {% for type_name in vessel_types %}
+                    <option value="{{ type_name }}">{{ type_name }} ({{ vessel_type_counts[type_name] }})</option>
+                    {% endfor %}
+                </select>
+                <button type="button" id="vessel-filter-reset"
+                        class="hidden text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline px-1">
+                    Сбросить фильтр
+                </button>
+                <span id="vessel-filter-hint" class="text-sm text-gray-500 sm:ml-auto"></span>
+            </div>
+        </div>
+
+        <div id="vessels-empty-filter" class="hidden mb-6 rounded-xl border border-dashed border-gray-300 bg-white px-6 py-10 text-center">
+            <p class="text-gray-600 font-medium">Нет плавсредств выбранного типа</p>
+            <p class="text-sm text-gray-400 mt-1">Выберите другой тип или сбросьте фильтр</p>
+        </div>
+
+        <!-- Сетка карточек -->
+        <div id="vessels-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for vessel in vessels %}
+            <div class="vessel-card bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl hover:scale-[1.01] transition-all duration-300 flex flex-col justify-between relative group"
+                 data-vessel-type="{{ vessel.type_name }}">
+
+                <div class="p-6 flex-1">
+                    <!-- Заголовок и номер -->
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{{ vessel.name }}</h3>
+                            <span class="inline-block mt-1 text-xs font-mono bg-gray-100 text-gray-600 px-2 py-0.5 rounded border">Борт: {{ vessel.number }}</span>
+                        </div>
+
+                        <!-- ИСПРАВЛЕНО: Динамический бейдж статуса -->
+                        {% if vessel.status_name|lower == 'свободен' %}
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">
+                                <span class="w-1.5 h-1.5 mr-1.5 bg-green-500 rounded-full animate-pulse"></span>Доступен
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                <span class="w-1.5 h-1.5 mr-1.5 bg-amber-500 rounded-full"></span>{{ vessel.status_name }}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Тип судна -->
+                    <div class="text-sm text-gray-600 mb-4 flex items-center">
+                        <svg class="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
+                        <span>Категория: <strong class="text-gray-800 font-medium">{{ vessel.type_name }}</strong></span>
+                    </div>
+
+                    <div class="space-y-3 pt-3 border-t border-gray-100">
+                        <!-- Дополнительное оборудование -->
+                        <div>
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Оснащение</span>
+                            <div class="flex flex-wrap gap-1.5">
+                                {% if vessel.equipment and vessel.equipment|length > 0 %}
+                                    {% for equip in vessel.equipment %}
+                                        <span class="inline-flex items-center text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md font-medium border border-blue-100">{{ equip }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="text-xs italic text-gray-400">Standard</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Доступные водоемы -->
+                        <div>
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Разрешенные водоемы</span>
+                            <div class="flex flex-wrap gap-1.5">
+                                {% if vessel.allowed_water_bodies and vessel.allowed_water_bodies|length > 0 %}
+                                    {% for wb in vessel.allowed_water_bodies %}
+                                        <span class="inline-flex items-center text-xs bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-md font-medium border border-emerald-100">{{ wb.name }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="text-xs italic text-red-400">Временно нет доступных акваторий</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ИСПРАВЛЕНО: Кнопка становится активной только при статусе 'свободен' -->
+                <div class="p-4 bg-gray-50 border-t border-gray-100">
+                    {% if vessel.status_name|lower == 'свободен' %}
+                        <button type="button"
+                                class="js-book-vessel w-full inline-flex justify-center items-center px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-300 transition-colors"
+                                data-vessel-id="{{ vessel.id }}"
+                                data-vessel-name="{{ vessel.name }}"
+                                data-vessel-type="{{ vessel.type_name }}">
+                            <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            Забронировать
+                        </button>
+                    {% else %}
+                        <button disabled class="w-full inline-flex justify-center items-center px-4 py-2.5 border border-transparent text-sm font-semibold rounded-xl text-gray-400 bg-gray-200 cursor-not-allowed">
+                            Недоступно для аренды
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</main>
+
+
+<!-- Modal for Booking -->
+<div id="booking-modal" tabindex="-1" aria-hidden="true" class="fixed inset-0 z-50 hidden bg-gray-900 bg-opacity-60 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-300">
+    <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl transform transition-transform scale-100 overflow-hidden">
+        <!-- Шапка модального окна -->
+        <div class="px-6 py-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
+            <h3 class="text-xl font-bold text-gray-900">Оставить заявку на аренду</h3>
+            <button type="button" onclick="closeBookingModal()" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- Тело формы -->
+        <div class="p-6">
+            <form id="booking-form" class="space-y-4">
+                <input type="hidden" id="modal-vessel-id" name="vessel_id">
+
+                <div>
+                    <label for="modal-water-body" class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Выберите водоем:</label>
+                    <select id="modal-water-body" name="water_body_id" required class="bg-white border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block w-full p-3 transition-all outline-none">
+                        <option value="">-- Нажмите для выбора --</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="modal-date" class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Желаемая дата:</label>
+                    <input type="date" id="modal-date" name="date" required class="bg-white border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block w-full p-3 transition-all outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="modal-start-time" class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Время начала:</label>
+                        <select id="modal-start-time" name="start_time" required class="bg-white border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block w-full p-3 transition-all outline-none">
+                            <!-- Options will be populated by JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="modal-duration" class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Длительность:</label>
+                        <select id="modal-duration" name="duration_hours" required class="bg-white border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block w-full p-3 transition-all outline-none">
+                            <option value="">-- Сначала выберите начало --</option>
+                        </select>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 -mt-2">От 1 до 24 часов. Время окончания рассчитывается автоматически.</p>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-semibold rounded-xl text-sm px-5 py-3 text-center shadow-lg shadow-blue-200 transition-all active:scale-[0.99]">
+                        Отправить заявку
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const allowedWaterBodiesByVesselId = {
+        {% for vessel in vessels %}
+        {{ vessel.id }}: {{ vessel.allowed_water_bodies | tojson }}{% if not loop.last %},{% endif %}
+        {% endfor %}
+    };
+
+    (function initVesselTypeFilter() {
+        const filter = document.getElementById('vessel-type-filter');
+        const resetBtn = document.getElementById('vessel-filter-reset');
+        const hint = document.getElementById('vessel-filter-hint');
+        const emptyState = document.getElementById('vessels-empty-filter');
+        const cards = document.querySelectorAll('.vessel-card');
+        if (!filter || !cards.length) return;
+
+        function applyVesselFilter() {
+            const type = filter.value;
+            let visible = 0;
+            cards.forEach(card => {
+                const match = !type || card.dataset.vesselType === type;
+                card.classList.toggle('hidden', !match);
+                if (match) visible++;
+            });
+            if (type) {
+                hint.textContent = `Показано: ${visible} из ${cards.length}`;
+                resetBtn.classList.remove('hidden');
+            } else {
+                hint.textContent = '';
+                resetBtn.classList.add('hidden');
+            }
+            emptyState.classList.toggle('hidden', visible > 0);
+        }
+
+        filter.addEventListener('change', applyVesselFilter);
+        resetBtn.addEventListener('click', () => {
+            filter.value = '';
+            applyVesselFilter();
+        });
+
+        const params = new URLSearchParams(window.location.search);
+        const typeFromUrl = params.get('type');
+        if (typeFromUrl && [...filter.options].some(o => o.value === typeFromUrl)) {
+            filter.value = typeFromUrl;
+        }
+        applyVesselFilter();
+    })();
+    let selectedVesselId = null;
+    let selectedVesselName = null;
+
+    function populateWaterBodySelect(vesselId) {
+        const select = document.getElementById('modal-water-body');
+        const allowed = allowedWaterBodiesByVesselId[vesselId] || [];
+        select.innerHTML = '<option value="">-- Выберите водоём --</option>';
+        if (!allowed.length) {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = 'Нет разрешённых водоёмов для этого судна';
+            opt.disabled = true;
+            select.appendChild(opt);
+            return;
+        }
+        allowed.forEach(wb => {
+            const option = document.createElement('option');
+            option.value = wb.id;
+            option.textContent = wb.name;
+            select.appendChild(option);
+        });
+    }
+
+    function openBookingModal(vesselId, vesselName, vesselType) {
+        selectedVesselId = vesselId;
+        selectedVesselName = vesselName;
+        document.getElementById('modal-vessel-id').value = vesselId;
+
+        const modal = document.getElementById('booking-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        document.getElementById('booking-form').reset();
+        document.getElementById('modal-vessel-id').value = vesselId;
+        populateWaterBodySelect(vesselId);
+        document.getElementById('modal-start-time').innerHTML = '<option value="">-- Сначала выберите дату --</option>';
+        document.getElementById('modal-duration').innerHTML = '<option value="">-- Сначала выберите начало --</option>';
+    }
+
+    const MAX_RENTAL_HOURS = 24;
+
+    function populateDurationOptions() {
+        const durationSelect = document.getElementById('modal-duration');
+        const startSelect = document.getElementById('modal-start-time');
+        if (!durationSelect || !startSelect.value) {
+            durationSelect.innerHTML = '<option value="">-- Сначала выберите начало --</option>';
+            return;
+        }
+        durationSelect.innerHTML = '<option value="">-- Выберите длительность --</option>';
+        for (let h = 1; h <= MAX_RENTAL_HOURS; h++) {
+            const label = h === 1 ? '1 час' : (h < 5 ? `${h} часа` : `${h} часов`);
+            const option = document.createElement('option');
+            option.value = String(h);
+            option.textContent = label;
+            durationSelect.appendChild(option);
+        }
+    }
+
+    document.getElementById('vessels-grid')?.addEventListener('click', function(e) {
+        const btn = e.target.closest('.js-book-vessel');
+        if (!btn) return;
+        openBookingModal(
+            parseInt(btn.dataset.vesselId, 10),
+            btn.dataset.vesselName,
+            btn.dataset.vesselType
+        );
+    });
+
+function closeBookingModal() {
+    const modal = document.getElementById('booking-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+
+    document.getElementById('modal-date').addEventListener('change', async function() {
+        const date = this.value;
+        const vesselId = selectedVesselId;
+        if (!date || !vesselId) return;
+
+        try {
+            const response = await fetch('/api/client/get_available_hours', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({vessel_id: vesselId, date: date})
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                alert(`Ошибка загрузки часов: ${errorData.detail || 'Неизвестная ошибка'}`);
+                return;
+            }
+
+            const data = await response.json();
+            const startSelect = document.getElementById('modal-start-time');
+            const durationSelect = document.getElementById('modal-duration');
+
+            startSelect.innerHTML = '<option value="">-- Выберите время начала --</option>';
+            data.available_hours.forEach(hour_range => {
+                const option = document.createElement('option');
+                option.value = hour_range.split(' - ')[0];
+                option.textContent = hour_range;
+                startSelect.appendChild(option);
+            });
+            durationSelect.innerHTML = '<option value="">-- Сначала выберите начало --</option>';
+
+        } catch (error) {
+            console.error('Ошибка при загрузке доступных часов:', error);
+            alert('Произошла ошибка при загрузке доступных часов.');
+        }
+    });
+
+    document.getElementById('modal-start-time').addEventListener('change', populateDurationOptions);
+
+
+    document.getElementById('booking-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const vessel_id = formData.get('vessel_id');
+        const water_body_id = parseInt(formData.get('water_body_id'));
+        const dateStr = formData.get('date');
+        const startTimeStr = formData.get('start_time');
+        const durationHours = parseInt(formData.get('duration_hours'), 10);
+
+        if (!vessel_id || !water_body_id || !dateStr || !startTimeStr || !durationHours) {
+            alert('Пожалуйста, заполните все поля.');
+            return;
+        }
+
+        if (durationHours < 1 || durationHours > MAX_RENTAL_HOURS) {
+            alert(`Длительность аренды — от 1 до ${MAX_RENTAL_HOURS} часов.`);
+            return;
+        }
+
+        const startDate = new Date(`${dateStr}T${startTimeStr}:00`);
+        const endDate = new Date(startDate.getTime() + durationHours * 60 * 60 * 1000);
+
+        const requestData = {
+            vessel_id: parseInt(vessel_id),
+            water_body_id: water_body_id,
+            desired_start: startDate.toISOString(),
+            desired_end: endDate.toISOString()
+        };
+
+        try {
+            const response = await fetch('/api/client/request_rental', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                alert(`Ошибка создания заявки: ${errorData.detail || 'Неизвестная ошибка'}`);
+                return;
+            }
+
+            const result = await response.json();
+            alert(result.msg);
+            closeBookingModal();
+
+        } catch (error) {
+            console.error('Ошибка при создании заявки:', error);
+            alert('Произошла ошибка при создании заявки.');
+        }
+    });
+</script>
+{% endblock %}
