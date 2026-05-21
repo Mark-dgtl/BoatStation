@@ -75,8 +75,8 @@
 ## Установка и запуск
 
 ```bash
-git clone https://github.com/Mark-dgtl/boat_station.git
-cd boat_station
+git clone https://github.com/Mark-dgtl/BoatStation.git
+cd BoatStation
 
 python3 -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
